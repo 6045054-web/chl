@@ -23,6 +23,8 @@ jobs:
         run: |
           npm config set registry https://registry.npmmirror.com
           npm install --force
+          # 关键检查：确认 Capacitor 库是否真的在 node_modules 里
+          ls -d node_modules/@capacitor/android/capacitor-android || echo "Capacitor Android package MISSING!"
 
       - name: Build Web Assets
         run: |
@@ -42,20 +44,21 @@ jobs:
           if [ -d "android" ]; then
             npx cap sync android
           else
-            echo "Android directory missing. If this is a native-only project, skip sync."
+            echo "Android directory missing!"
+            exit 1
           fi
 
       - name: Build Android APK
         run: |
           cd android
-          # 核心修复：如果 gradlew 丢失，则使用系统 gradle 命令生成它
+          # 赋予执行权限
           if [ ! -f "gradlew" ]; then
-            echo "gradlew not found, generating wrapper..."
-            gradle wrapper
+            gradle wrapper --gradle-version 8.7
           fi
-          
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          
+          # 执行编译，使用 --no-daemon 减少内存占用，增加稳定性
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
