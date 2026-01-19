@@ -1,3 +1,4 @@
+
 name: Build Android APK
 
 on:
@@ -17,7 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          # 删除了 cache: 'npm'，因为新手仓库通常没有 package-lock.json
 
       - name: Install Dependencies
         run: npm install --force
