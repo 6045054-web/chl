@@ -1,0 +1,38 @@
+
+include ':app'
+
+// 尝试多个可能的路径寻找 Capacitor 库
+def findCapacitorPath() {
+    def paths = [
+        "../node_modules/@capacitor/android/capacitor-android",
+        "../../node_modules/@capacitor/android/capacitor-android",
+        "node_modules/@capacitor/android/capacitor-android"
+    ]
+    for (path in paths) {
+        def dir = new File(settingsDir, path)
+        if (dir.exists()) return dir
+    }
+    return null
+}
+
+def capacitorDir = findCapacitorPath()
+
+if (capacitorDir != null) {
+    include ':capacitor-android'
+    project(':capacitor-android').projectDir = capacitorDir
+    println "成功加载本地 Capacitor 库: ${capacitorDir.absolutePath}"
+} else {
+    println "=========================================================="
+    println "[致命错误] 找不到本地 Capacitor 库！"
+    println "可能原因: 之前的 'npm install' 失败了，或者文件夹被移动了。"
+    println "解决方案: 请在桌面文件夹里运行 'npm run repair' 命令。"
+    println "=========================================================="
+    // 不再抛出硬异常，让 Android Studio 能开起来，但在构建时会提示
+}
+
+// 包含 Cordova 插件支持
+def cordovaDir = new File(settingsDir, "../node_modules/@capacitor/android/capacitor-cordova-android-plugins")
+if (cordovaDir.exists()) {
+    include ':capacitor-cordova-android-plugins'
+    project(':capacitor-cordova-android-plugins').projectDir = cordovaDir
+}
